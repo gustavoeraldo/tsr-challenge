@@ -10,6 +10,8 @@ coverage = "*"
 alembic = "*"
 fastapi = "*"
 python-dotenv = "*"
+dependency-injector = "*"
+psycopg2-binary = "*"
 
 [dev-packages]
 
