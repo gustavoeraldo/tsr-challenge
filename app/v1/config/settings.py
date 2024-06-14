@@ -9,7 +9,7 @@ class Settings:
     API_VERSION: str = os.getenv("API_VERSION")
 
     # Database
-    PRIMARY_DATABASE_URL: str = os.getenv("PRIMARY_DATABASE_URL")
+    DATABASE_URL: str = os.getenv("DATABASE_URL")
 
     # Network
     ORIGINS_CORS: str = os.getenv("ORIGINS_CORS")
