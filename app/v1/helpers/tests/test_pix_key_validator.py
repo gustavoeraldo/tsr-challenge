@@ -4,7 +4,7 @@ import uuid
 from app.v1.helpers.pix_key_validator import PixKeyValidator
 
 
-class TestPixKeyValidator(TestCase):
+class TestUnitPixKeyValidator(TestCase):
     def test_is_valid_cnpj(self):
         cnpj = "11.111.111/0001-11"
         validator = PixKeyValidator(cnpj)
