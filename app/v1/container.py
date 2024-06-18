@@ -9,6 +9,12 @@ from app.v1.entities.beneficiary.repository.beneficiary_repository import (
     BeneficiaryRepository,
 )
 
+from app.v1.entities.bank_account.model.bank_account_model import BankAccountModel
+from app.v1.entities.bank_account.bank_account_repository import BankAccountRepository
+from app.v1.entities.bank_account.bank_account_service import BankAccountService
+
+from app.v1.services.pix_api import PixApiService
+
 
 class Container(containers.DeclarativeContainer):
     config = providers.Configuration()
@@ -20,6 +26,19 @@ class Container(containers.DeclarativeContainer):
 
     settings = providers.Object(settings)
 
+    # Bank Account modules
+    bank_account_repository = providers.Factory(
+        BankAccountRepository,
+        model=BankAccountModel,
+        session_factory=db.provided.session,
+    )
+
+    bank_account_service = providers.Factory(
+        BankAccountService,
+        bank_account_repository=bank_account_repository,
+    )
+
+    # Beneficiary modules
     beneficiary_repository = providers.Factory(
         BeneficiaryRepository,
         model=BeneficiaryModel,
@@ -29,4 +48,6 @@ class Container(containers.DeclarativeContainer):
     beneficiary_service = providers.Factory(
         BeneficiaryService,
         repository=beneficiary_repository,
+        bank_account_service=bank_account_service,
+        pix_api_service=providers.Factory(PixApiService),
     )
