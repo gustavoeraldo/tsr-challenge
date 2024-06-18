@@ -22,10 +22,7 @@ class Repository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
 
     def get_by_id(self, entity_id: Any) -> ModelType:
         with self.session_factory() as db:
-            obj = db.query(self.model).get(entity_id)
-            if obj is None:
-                raise NotFoundError(entity_id)
-            return obj
+            return db.query(self.model).get(entity_id)
 
     def create(self, data: CreateSchemaType) -> ModelType:
         with self.session_factory() as db:
@@ -36,12 +33,10 @@ class Repository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
             db.refresh(db_obj)
             return db_obj
 
-    def delete_by_id(self, entity_id: Any) -> ModelType:
+    def delete_by_id(self, obj: ModelType) -> None:
         with self.session_factory() as db:
-            obj = self.get_by_id(entity_id)
             db.delete(obj)
             db.commit()
-            return obj
 
     def update_by_id(self, entity_id: Any, data: UpdateSchemaType) -> ModelType:
         with self.session_factory() as db:
