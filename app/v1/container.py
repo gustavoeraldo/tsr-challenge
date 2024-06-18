@@ -36,6 +36,7 @@ class Container(containers.DeclarativeContainer):
     bank_account_service = providers.Factory(
         BankAccountService,
         bank_account_repository=bank_account_repository,
+        pix_api_service=providers.Factory(PixApiService),
     )
 
     # Beneficiary modules
