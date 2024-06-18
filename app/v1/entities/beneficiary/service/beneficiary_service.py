@@ -5,10 +5,15 @@ from app.v1.entities.beneficiary.repository.beneficiary_repository import (
 from app.v1.entities.beneficiary.schemas.beneficiary_schemas import (
     BeneficiaryCreateInDBSchema,
     BeneficiaryFormSchema,
+    BeneficiaryUpdateFormSchema,
+    BeneficiaryUpdateInDBSchema,
 )
 
-from app.v1.entities.bank_account.bank_account_schemas import BankAccountCreateInDB
 from app.v1.entities.bank_account.bank_account_service import BankAccountService
+from app.v1.entities.bank_account.bank_account_schemas import (
+    BankAccountCreateInDB,
+)
+
 from app.v1.services.pix_api import PixApiService
 
 
@@ -23,14 +28,7 @@ class BeneficiaryService:
         self._bank_account_service = bank_account_service
         self._pix_api_service = pix_api_service
 
-    async def create(
-        self, beneficiary_data: BeneficiaryCreateInDBSchema
-    ) -> BeneficiaryModel:
-        new_beneficiary = self._create(beneficiary_data)
-
-        return new_beneficiary
-
-    async def create_v2(self, data: BeneficiaryFormSchema):
+    async def create(self, data: BeneficiaryFormSchema):
         # Create a new beneficiary
         beneficiary_data = BeneficiaryCreateInDBSchema(**data.model_dump())
         new_beneficiary = self._create(beneficiary_data)
@@ -61,8 +59,27 @@ class BeneficiaryService:
     async def delete_by_id(self, entity_id: int) -> None:
         return self._repository.delete_by_id(entity_id)
 
-    def update_by_id(self, entity_id: int, data: dict):
-        return self._repository.update_by_id(entity_id, data)
+    async def update_by_id(self, entity_id: int, data: BeneficiaryUpdateFormSchema):
+        # get the beneficiary by id
+        beneficiary = self._repository.get_by_id(entity_id)
+        updated_beneficiary = BeneficiaryUpdateInDBSchema()
+
+        # update the beneficiary
+        if beneficiary.status == "validado" and data.email:
+            # if status is "validado", can only update the field: email
+            updated_beneficiary.email = data.email
+        else:
+            # if status is "rascunho", can update the fields: name, email, cpf_cnpj
+            updated_beneficiary = BeneficiaryUpdateInDBSchema(
+                **data.model_dump(exclude_none=True, exclude_defaults=True)
+            )
+
+        return self._update(entity_id, updated_beneficiary)
 
     def _create(self, data: BeneficiaryCreateInDBSchema) -> BeneficiaryModel:
         return self._repository.create(data)
+
+    def _update(
+        self, entity_id: int, data: BeneficiaryUpdateInDBSchema
+    ) -> BeneficiaryModel:
+        return self._repository.update_by_id(entity_id, data)
