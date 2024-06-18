@@ -18,21 +18,19 @@ class BankAccountBaseSchema(BaseModel):
 
     @model_validator(mode="before")
     @classmethod
-    def validate_pix_key(cls, values):
-        pix_key_validator = PixKeyValidator(values["pix_key"])
+    def validate_pix_key(cls, values: dict):
+        pix_key_validator = PixKeyValidator(values.get("pix_key", None))
+        pix_key_type = values.get("pix_key_type", None)
 
-        if values["pix_key_type"] == "CPF" and not pix_key_validator.is_valid_cpf():
+        if pix_key_type == "CPF" and not pix_key_validator.is_valid_cpf():
             raise ValueError("Invalid CPF")
-        if values["pix_key_type"] == "CNPJ" and not pix_key_validator.is_valid_cnpj():
+        if pix_key_type == "CNPJ" and not pix_key_validator.is_valid_cnpj():
             raise ValueError("Invalid CNPJ")
-        if values["pix_key_type"] == "PHONE" and not pix_key_validator.is_valid_phone():
+        if pix_key_type == "PHONE" and not pix_key_validator.is_valid_phone():
             raise ValueError("Invalid Phone")
-        if values["pix_key_type"] == "EMAIL" and not pix_key_validator.is_valid_email():
+        if pix_key_type == "EMAIL" and not pix_key_validator.is_valid_email():
             raise ValueError("Invalid Email")
-        if (
-            values["pix_key_type"] == "RANDOM"
-            and not pix_key_validator.is_valid_random_key()
-        ):
+        if pix_key_type == "RANDOM" and not pix_key_validator.is_valid_random_key():
             raise ValueError("Invalid Random Key")
         return values
 
@@ -45,9 +43,9 @@ class BankAccountDataSchema(BankAccountBaseSchema):
 
 
 # EXTERNAL SCHEMAS - API REQUESTS AND RESPONSES
-class BankAccountUpdateSchema(BaseModel):
-    pix_key_type: Optional[str]
-    pix_key: Optional[str]
+class BankAccountUpdateSchema(BankAccountBaseSchema):
+    pix_key_type: Optional[str] = None
+    pix_key: Optional[str] = None
 
 
 # INTERNAL SCHEMAS - DATABASE OPERATIONS
