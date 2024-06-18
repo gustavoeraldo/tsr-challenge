@@ -27,7 +27,14 @@ class BankAccountService:
     def get(self, filters: dict):
         return self._bank_account_repository.get(filters)
 
-    async def delete_by_id(self, entity_id: int) -> None:
+    async def delete_by_beneficiary_id(self, beneficiary_id: int) -> None:
+        bank_account = self.get({"beneficiary_id": beneficiary_id})
+        if not bank_account:
+            raise Exception("Bank account not found")
+
+        return self.delete_by_id(bank_account.id)
+
+    def delete_by_id(self, entity_id: int) -> None:
         return self._bank_account_repository.delete_by_id(entity_id)
 
     async def update_by_beneficiary_id(

@@ -40,7 +40,7 @@ async def get_beneficiary(
     beneficiary_id: int,
     service: BeneficiaryService = Depends(get_beneficiary_service),
 ):
-    return service.get(beneficiary_id)
+    return service.get_by_id(beneficiary_id)
 
 
 @router.patch("/beneficiary/{beneficiary_id}", status_code=status.HTTP_200_OK)
@@ -62,9 +62,13 @@ async def update_beneficiary(
 async def delete_beneficiary(
     beneficiary_id: int,
     service: BeneficiaryService = Depends(get_beneficiary_service),
+    bank_account_service: BankAccountService = Depends(get_bank_account_service),
 ):
     try:
-        await service.delete_by_id(beneficiary_id)
+        # Delete the beneficiary bank account
+        await bank_account_service.delete_by_beneficiary_id(beneficiary_id)
     except Exception:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+
+    await service.delete_by_id(beneficiary_id)
     return None
