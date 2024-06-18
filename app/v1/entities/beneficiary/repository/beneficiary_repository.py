@@ -17,6 +17,10 @@ class BeneficiaryRepository(
         return super().create(data)
 
     def get_by_id(self, entity_id: int) -> BeneficiaryModel:
+        data = super().get_by_id(entity_id)
+
+        if not data:
+            raise NotFoundBeneficiaryError(entity_id)
         return super().get_by_id(entity_id)
 
     def update_by_id(
@@ -24,5 +28,6 @@ class BeneficiaryRepository(
     ) -> BeneficiaryModel:
         return super().update_by_id(entity_id, data)
 
-    def delete_by_id(self, entity_id: int) -> BeneficiaryModel:
-        return super().delete_by_id(entity_id)
+    def delete_by_id(self, entity_id: int) -> None:
+        obj = self.get_by_id(entity_id)
+        return super().delete_by_id(obj)
