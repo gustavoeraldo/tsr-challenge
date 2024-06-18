@@ -16,6 +16,9 @@ class BankAccountRepository(
     def create(self, data: BankAccountCreateInDB) -> BankAccountModel:
         return super().create(data)
 
+    def get(self, filters: dict):
+        return super().get(filters)
+
     def get_by_id(self, entity_id: int) -> BankAccountModel:
         data = super().get_by_id(entity_id)
 
