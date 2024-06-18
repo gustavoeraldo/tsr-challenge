@@ -29,6 +29,7 @@ def upgrade() -> None:
             sa.ForeignKey("beneficiary.id"),
             nullable=False,
         ),
+        sa.Column("account_type", sa.String(10), nullable=False),
         sa.Column("account_number", sa.String(50), nullable=False),
         sa.Column("pix_key_type", sa.String(50), nullable=False),
         sa.Column("pix_key", sa.String(50), nullable=False, unique=True),
