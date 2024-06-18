@@ -10,6 +10,7 @@ class BankAccountModel(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     beneficiary_id = Column(Integer, ForeignKey("beneficiary.id"), nullable=False)
+    account_type = Column(String(10), nullable=False)
     account_number = Column(String(10), nullable=False)
     pix_key_type = Column(String(20), nullable=False)
     pix_key = Column(String(250), nullable=False)
