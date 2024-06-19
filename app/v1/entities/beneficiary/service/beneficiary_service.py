@@ -56,6 +56,19 @@ class BeneficiaryService:
     def get_by_id(self, entity_id: int) -> BeneficiaryModel:
         return self._repository.get_by_id(entity_id)
 
+    async def get_paginated(
+        self,
+        beneficiary_filter: dict,
+        bank_account_filter: dict,
+        page: int,
+        per_page: int,
+    ):
+        data, total = self._repository.get_paginated(
+            beneficiary_filter, bank_account_filter, page, per_page
+        )
+
+        return data, total
+
     async def delete_by_id(self, entity_id: int) -> None:
         return self._repository.delete_by_id(entity_id)
 

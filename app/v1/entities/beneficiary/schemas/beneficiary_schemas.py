@@ -31,6 +31,11 @@ class BeneficiaryBaseUpdate(BaseModel):
     cpf_cnpj: Optional[str] = None
 
 
+class BeneficiaryBaseFilter(BaseModel):
+    name: Optional[str] = None
+    status: Optional[str] = None
+
+
 # EXTERNAL SCHEMAS - API REQUESTS AND RESPONSES
 class BeneficiaryFormSchema(BankAccountBaseSchema, BeneficiaryBaseSchema):
 

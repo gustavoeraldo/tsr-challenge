@@ -1,11 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
+from typing import Annotated
 
 from app.v1.container import Container
 from app.v1.entities.bank_account.bank_account_service import BankAccountService
+from app.v1.entities.bank_account.bank_account_schemas import BankAccountFilter
 from app.v1.entities.beneficiary.service.beneficiary_service import BeneficiaryService
 from app.v1.entities.beneficiary.schemas.beneficiary_schemas import (
     BeneficiaryFormSchema,
     BeneficiaryUpdateFormSchema,
+    BeneficiaryBaseFilter,
 )
 
 router = APIRouter()
@@ -41,6 +44,37 @@ async def get_beneficiary(
     service: BeneficiaryService = Depends(get_beneficiary_service),
 ):
     return service.get_by_id(beneficiary_id)
+
+
+@router.get("/beneficiaries")
+async def get_beneficiaries(
+    # "Status", "Nome", "Tipo da chave" ou "Valor da chave"
+    name: Annotated[str | None, Query(max_length=100)] = None,
+    status: Annotated[str | None, Query(max_length=20)] = None,
+    pix_key_type: Annotated[str | None, Query(max_length=20)] = None,
+    pix_key_value: Annotated[str | None, Query(max_length=100)] = None,
+    page: int = 1,
+    per_page: int = 10,
+    service: BeneficiaryService = Depends(get_beneficiary_service),
+):
+
+    beneficiary_filter = BeneficiaryBaseFilter(name=name, status=status)
+    bank_account_filter = BankAccountFilter(
+        pix_key_type=pix_key_type, pix_key=pix_key_value
+    )
+
+    data, total = await service.get_paginated(
+        beneficiary_filter=beneficiary_filter.model_dump(
+            exclude_unset=True, exclude_none=True, exclude_defaults=True
+        ),
+        bank_account_filter=bank_account_filter.model_dump(
+            exclude_unset=True, exclude_none=True, exclude_defaults=True
+        ),
+        page=page,
+        per_page=per_page,
+    )
+
+    return {"total": total, "page": page, "per_page": per_page, "data": data}
 
 
 @router.patch("/beneficiary/{beneficiary_id}", status_code=status.HTTP_200_OK)
