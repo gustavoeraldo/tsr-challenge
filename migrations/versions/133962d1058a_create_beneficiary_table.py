@@ -25,6 +25,7 @@ def upgrade() -> None:
         sa.Column("id", sa.Integer, primary_key=True),
         sa.Column("name", sa.String(250), nullable=False),
         sa.Column("email", sa.String(250), nullable=False),
+        sa.Column("cpf_cnpj", sa.String(25), nullable=False),
         sa.Column("status", sa.String, nullable=False, server_default="rascunho"),
         sa.Column(
             "created_at", sa.DateTime, nullable=False, server_default=sa.func.now()
