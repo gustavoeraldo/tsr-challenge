@@ -50,7 +50,7 @@ async def get_beneficiary(
 async def get_beneficiaries(
     # "Status", "Nome", "Tipo da chave" ou "Valor da chave"
     name: Annotated[str | None, Query(max_length=100)] = None,
-    status: Annotated[str | None, Query(max_length=20)] = None,
+    beneficiary_status: Annotated[str | None, Query(max_length=20)] = None,
     pix_key_type: Annotated[str | None, Query(max_length=20)] = None,
     pix_key_value: Annotated[str | None, Query(max_length=100)] = None,
     page: int = 1,
@@ -58,7 +58,7 @@ async def get_beneficiaries(
     service: BeneficiaryService = Depends(get_beneficiary_service),
 ):
 
-    beneficiary_filter = BeneficiaryBaseFilter(name=name, status=status)
+    beneficiary_filter = BeneficiaryBaseFilter(name=name, status=beneficiary_status)
     bank_account_filter = BankAccountFilter(
         pix_key_type=pix_key_type, pix_key=pix_key_value
     )
