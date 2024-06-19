@@ -24,6 +24,10 @@ class Repository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         with self.session_factory() as db:
             return db.query(self.model).get(entity_id)
 
+    def get(self, filters: dict):
+        with self.session_factory() as db:
+            return db.query(self.model).filter_by(**filters).first()
+
     def create(self, data: CreateSchemaType) -> ModelType:
         with self.session_factory() as db:
             obj_in_data = jsonable_encoder(data)
@@ -48,6 +52,7 @@ class Repository(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
                 if field in updated_data:
                     setattr(current_obj, field, updated_data[field])
 
+            db.add(current_obj)
             db.commit()
             db.refresh(current_obj)
 
