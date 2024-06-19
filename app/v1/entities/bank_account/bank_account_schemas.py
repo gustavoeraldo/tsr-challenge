@@ -48,6 +48,11 @@ class BankAccountUpdateSchema(BankAccountBaseSchema):
     pix_key: Optional[str] = None
 
 
+class BankAccountFilter(BaseModel):
+    pix_key_type: Optional[str] = None
+    pix_key: Optional[str] = None
+
+
 # INTERNAL SCHEMAS - DATABASE OPERATIONS
 class BankAccountCreateInDB(BankAccountDataSchema, BankAccountBaseSchema):
     beneficiary_id: int
