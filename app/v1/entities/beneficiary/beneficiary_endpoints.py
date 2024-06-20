@@ -9,6 +9,7 @@ from app.v1.entities.beneficiary.schemas.beneficiary_schemas import (
     BeneficiaryFormSchema,
     BeneficiaryUpdateFormSchema,
     BeneficiaryBaseFilter,
+    BeneficiaryPaginatedResponseSchema,
 )
 
 router = APIRouter()
@@ -46,9 +47,12 @@ async def get_beneficiary(
     return service.get_by_id(beneficiary_id)
 
 
-@router.get("/beneficiaries")
+@router.get(
+    "/beneficiary",
+    response_model=BeneficiaryPaginatedResponseSchema,
+    status_code=status.HTTP_200_OK,
+)
 async def get_beneficiaries(
-    # "Status", "Nome", "Tipo da chave" ou "Valor da chave"
     name: Annotated[str | None, Query(max_length=100)] = None,
     beneficiary_status: Annotated[str | None, Query(max_length=20)] = None,
     pix_key_type: Annotated[str | None, Query(max_length=20)] = None,
@@ -74,7 +78,9 @@ async def get_beneficiaries(
         per_page=per_page,
     )
 
-    return {"total": total, "page": page, "per_page": per_page, "data": data}
+    return BeneficiaryPaginatedResponseSchema(
+        total_pages=total, page=page, per_page=per_page, data=data
+    )
 
 
 @router.patch("/beneficiary/{beneficiary_id}", status_code=status.HTTP_200_OK)
@@ -106,3 +112,20 @@ async def delete_beneficiary(
 
     await service.delete_by_id(beneficiary_id)
     return None
+
+
+# @router.post(
+#     "/beneficiary/batch-clean-up",
+#     description="Delete multiple beneficiaries",
+#     status_code=status.HTTP_200_OK,
+# )
+# async def batch_delete(
+#     service: BeneficiaryService = Depends(get_beneficiary_service),
+#     bank_account_service: BankAccountService = Depends(get_bank_account_service),
+# ):
+#     # Delete all beneficiaries
+#     # await service.delete_all()
+
+#     # Delete all bank accounts
+#     # await bank_account_service.delete_all()
+#     return {"message": "All beneficiaries were deleted"}
