@@ -1,10 +1,9 @@
-from pydantic import Field, BaseModel, field_validator
+from pydantic import Field, BaseModel
 from typing import Optional
-import re
 
 from app.v1.core.pagination_schema import Pagination
 
-from .beneficiary_mappers import BeneficiaryListMapper
+from .beneficiary_mappers import BeneficiaryItemMapper
 from app.v1.entities.bank_account.bank_account_schemas import (
     BankAccountBaseSchema,
     BankAccountUpdateSchema,
@@ -78,7 +77,7 @@ class BeneficiaryUpdateFormSchema(BeneficiaryBaseSchema, BankAccountUpdateSchema
 
 
 class BeneficiaryPaginatedResponseSchema(Pagination):
-    data: list[BeneficiaryListMapper]
+    data: list[BeneficiaryItemMapper]
 
 
 # INTERNAL SCHEMAS - DATABASE MANIPULATION
