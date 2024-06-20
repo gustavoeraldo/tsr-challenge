@@ -75,10 +75,26 @@ class BeneficiaryRepository(
             data = self._serialize_data(_data, _column_to_serialize)
             return data, total
 
-    def _filter(self, query, filters: dict, model: ModelType) -> Session:
+    def _filter(self, query: Session, filters: dict, model: ModelType) -> Session:
+        for key, value in filters.items():
+            if isinstance(value, str):
+                query = self._like_filter(query, {key: value}, model)
+            elif isinstance(value, list):
+                query = self._in_filter(query, {key: value}, model)
+            else:
+                query = query.filter(getattr(model, key) == value)
+        return query
+
+    def _like_filter(self, query: Session, filters: dict, model: ModelType) -> Session:
         for key, value in filters.items():
             if value:
-                query = query.filter(getattr(model, key) == value)
+                query = query.filter(getattr(model, key).like(f"%{value}%"))
+        return query
+
+    def _in_filter(self, query: Session, filters: dict, model: ModelType) -> Session:
+        for key, value in filters.items():
+            if value:
+                query = query.filter(getattr(model, key).in_(value))
         return query
 
     def _serialize_data(self, data: list, keys: list) -> list:
