@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-
+from sqlalchemy.sql import func
 
 from app.v1.core.repository import Repository, NotFoundError, ModelType
 from app.v1.entities.beneficiary.model.beneficiary_model import BeneficiaryModel
@@ -85,13 +85,19 @@ class BeneficiaryRepository(
                 query = query.filter(getattr(model, key) == value)
         return query
 
-    def _like_filter(self, query: Session, filters: dict, model: ModelType) -> Session:
+    def _like_filter(
+        self, query: Session, filters: dict[str, str], model: ModelType
+    ) -> Session:
         for key, value in filters.items():
             if value:
-                query = query.filter(getattr(model, key).like(f"%{value}%"))
+                query = query.filter(
+                    func.lower(getattr(model, key)).like(f"%{value.lower()}%")
+                )
         return query
 
-    def _in_filter(self, query: Session, filters: dict, model: ModelType) -> Session:
+    def _in_filter(
+        self, query: Session, filters: dict[str, list], model: ModelType
+    ) -> Session:
         for key, value in filters.items():
             if value:
                 query = query.filter(getattr(model, key).in_(value))
