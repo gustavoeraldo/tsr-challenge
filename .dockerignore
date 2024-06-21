@@ -1,0 +1,12 @@
+.pytest_cache/
+__pycache__/
+
+Dockerfile*
+docker-compose*
+.dockerignore
+.git
+.gitignore
+.md
+LICENSE
+.vscode
+.env.example

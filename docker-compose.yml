@@ -1,0 +1,42 @@
+version: '3'
+services:
+  pg_master:
+    image: postgres:16.3
+    container_name: pg_master
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: tsf_api
+    volumes:
+      - pg_master_data:/var/lib/postgresql/data
+    networks:
+      - tsf_network
+    ports:
+      - 5433:5432
+  
+  tsf-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: tsf-api-image
+    container_name: tsf-api-container
+    depends_on:
+      - pg_master
+    # volumes:
+    #   - .:/app
+    networks:
+      - tsf_network
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+
+volumes:
+  pg_master_data:
+  tsf_volume:
+
+networks:
+  tsf_network:
+    driver: bridge
+    name: tsf_network
