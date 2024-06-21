@@ -87,3 +87,14 @@ class BeneficiaryCreateInDBSchema(BeneficiaryBaseSchema):
 
 class BeneficiaryUpdateInDBSchema(BeneficiaryBaseUpdate):
     status: Optional[str] = None
+
+
+class BeneficiaryModelSchema(BaseModel):
+    id: int
+    name: str
+    email: str
+    cpf_cnpj: str
+    status: str
+
+    class Config:
+        from_attributes = True
