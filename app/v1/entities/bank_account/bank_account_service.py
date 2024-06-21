@@ -1,3 +1,5 @@
+from app.v1.services.pix_api import PixApiService
+from app.v1.core.exceptions import EntityNotFoundError
 from app.v1.entities.bank_account.model.bank_account_model import BankAccountModel
 from .bank_account_repository import BankAccountRepository
 from .bank_account_schemas import (
@@ -5,8 +7,6 @@ from .bank_account_schemas import (
     BankAccountUpdateSchema,
     BankAccountUpdateInDB,
 )
-
-from app.v1.services.pix_api import PixApiService
 
 
 class BankAccountService:
@@ -30,7 +30,7 @@ class BankAccountService:
     async def delete_by_beneficiary_id(self, beneficiary_id: int) -> None:
         bank_account = self.get({"beneficiary_id": beneficiary_id})
         if not bank_account:
-            raise Exception("Bank account not found")
+            raise EntityNotFoundError("Could find bank account for this beneficiary")
 
         return self.delete_by_id(bank_account.id)
 
@@ -43,16 +43,20 @@ class BankAccountService:
         bank_account = self.get({"beneficiary_id": beneficiary_id})
 
         if not bank_account:
-            raise Exception("Bank account not found")
+            raise EntityNotFoundError("Could find bank account for this beneficiary")
 
         # Get bank account data from an external API
-        bank_account_data = self._pix_api_service.get_bank_data_by_pix(
-            pix_type=data.pix_key_type, pix_key=data.pix_key
-        )
+        if data.pix_key and data.pix_key_type:
+            bank_account_data = self._pix_api_service.get_bank_data_by_pix(
+                pix_type=data.pix_key_type, pix_key=data.pix_key
+            )
 
-        updated_bank_account = BankAccountUpdateInDB(**bank_account_data.model_dump())
+            updated_bank_account = BankAccountUpdateInDB(
+                **bank_account_data.model_dump()
+            )
+            return self.update_by_id(bank_account.id, updated_bank_account)
 
-        return self.update_by_id(bank_account.id, updated_bank_account)
+        return bank_account
 
     def update_by_id(self, entity_id: int, data: BankAccountUpdateInDB):
         return self._bank_account_repository.update_by_id(entity_id, data)
