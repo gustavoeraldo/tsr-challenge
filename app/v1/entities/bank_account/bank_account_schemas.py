@@ -63,3 +63,16 @@ class BankAccountUpdateInDB(BankAccountUpdateSchema):
     bank_name: Optional[str]
     branch_number: Optional[str]
     account_type: Optional[str]
+
+
+class BankAccountModelSchema(BaseModel):
+    id: int
+    account_number: str
+    bank_name: str
+    branch_number: str
+    account_type: str
+    pix_key_type: str
+    pix_key: str
+
+    class Config:
+        from_attributes = True
