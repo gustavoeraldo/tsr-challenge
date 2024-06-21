@@ -1,6 +1,7 @@
 from app.v1.entities.beneficiary.model.beneficiary_model import BeneficiaryModel
 from app.v1.entities.beneficiary.repository.beneficiary_repository import (
     BeneficiaryRepository,
+    NotFoundBeneficiaryError,
 )
 from app.v1.entities.beneficiary.schemas.beneficiary_schemas import (
     BeneficiaryCreateInDBSchema,
@@ -15,6 +16,7 @@ from app.v1.entities.bank_account.bank_account_schemas import (
 )
 
 from app.v1.services.pix_api import PixApiService
+from app.v1.core.exceptions import EntityNotFoundError, EntityCreationError
 
 
 class BeneficiaryService:
@@ -48,9 +50,11 @@ class BeneficiaryService:
             await self._bank_account_service.create(beneficiary_bank_acc)
         except Exception:
             self._repository.delete_by_id(new_beneficiary.id)
-            raise Exception("Bank account creation failed")
+            raise EntityCreationError(
+                "Could not create beneficiary by the given account data."
+            )
 
-        # Create a mapper to return the new beneficiary with the bank account data
+        # TODO: Create a mapper to return the new beneficiary with the bank account data
         return new_beneficiary
 
     def get_by_id(self, entity_id: int) -> BeneficiaryModel:
@@ -74,7 +78,13 @@ class BeneficiaryService:
 
     async def update_by_id(self, entity_id: int, data: BeneficiaryUpdateFormSchema):
         # get the beneficiary by id
-        beneficiary = self._repository.get_by_id(entity_id)
+        try:
+            beneficiary = self._repository.get_by_id(entity_id)
+        except NotFoundBeneficiaryError as err:
+            raise EntityNotFoundError(
+                message="Could not find the beneficiary with the given ID."
+            ) from err
+
         updated_beneficiary = BeneficiaryUpdateInDBSchema()
 
         # update the beneficiary

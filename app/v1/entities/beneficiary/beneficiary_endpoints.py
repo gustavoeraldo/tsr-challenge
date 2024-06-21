@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from typing import Annotated
 
 from app.v1.container import Container
+from app.v1.core.exceptions import EntityNotFoundError
 from app.v1.entities.bank_account.bank_account_service import BankAccountService
 from app.v1.entities.bank_account.bank_account_schemas import BankAccountFilter
 from app.v1.entities.beneficiary.service.beneficiary_service import BeneficiaryService
@@ -10,6 +11,7 @@ from app.v1.entities.beneficiary.schemas.beneficiary_schemas import (
     BeneficiaryUpdateFormSchema,
     BeneficiaryBaseFilter,
     BeneficiaryPaginatedResponseSchema,
+    BeneficiaryItemMapper,
 )
 
 router = APIRouter()
@@ -91,11 +93,29 @@ async def update_beneficiary(
     bank_account_service: BankAccountService = Depends(get_bank_account_service),
 ):
     # Update the beneficiary
-    updated_beneficiary = await service.update_by_id(beneficiary_id, data)
+    try:
+        updated_beneficiary = await service.update_by_id(beneficiary_id, data)
+    except EntityNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=exc.message,
+        ) from exc
 
     # Update the beneficiary bank account
-    await bank_account_service.update_by_beneficiary_id(beneficiary_id, data)
-    return updated_beneficiary
+    updated_bank_account = await bank_account_service.update_by_beneficiary_id(
+        beneficiary_id, data
+    )
+
+    response = BeneficiaryItemMapper(
+        **updated_beneficiary.to_dict(
+            exclude={"created_at", "updated_at", "bank_account"}
+        ),
+        **updated_bank_account.to_dict(
+            exclude={"id", "created_at", "updated_at", "beneficiary_id"}
+        )
+    )
+
+    return response
 
 
 @router.delete("/beneficiary/{beneficiary_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -107,8 +127,10 @@ async def delete_beneficiary(
     try:
         # Delete the beneficiary bank account
         await bank_account_service.delete_by_beneficiary_id(beneficiary_id)
-    except Exception:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    except EntityNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=exc.message
+        ) from exc
 
     await service.delete_by_id(beneficiary_id)
     return None
