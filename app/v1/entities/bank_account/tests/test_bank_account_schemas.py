@@ -1,7 +1,7 @@
 from unittest import TestCase
 from pydantic import ValidationError
 
-from ..schemas.bank_account_schema import BankAccountBaseSchema
+from ..bank_account_schemas import BankAccountBaseSchema
 
 
 class TestUnitBankAccountBaseSchema(TestCase):
