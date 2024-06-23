@@ -11,6 +11,7 @@ from app.v1.entities.beneficiary.schemas.beneficiary_schemas import (
 )
 
 from app.v1.entities.bank_account.bank_account_service import BankAccountService
+from ..schemas.beneficiary_mappers import BeneficiaryItemMapper
 from app.v1.entities.bank_account.bank_account_schemas import (
     BankAccountCreateInDB,
 )
@@ -59,6 +60,15 @@ class BeneficiaryService:
 
     def get_by_id(self, entity_id: int) -> BeneficiaryModel:
         return self._repository.get_by_id(entity_id)
+
+    def get_data_and_bank_account_by_id(self, entity_id: int) -> BeneficiaryItemMapper:
+        try:
+            data = self._repository.get_data_and_bank_account_by_id(entity_id)
+            return data
+        except NotFoundBeneficiaryError as err:
+            raise EntityNotFoundError(
+                message="Could not find the beneficiary with the given ID."
+            ) from err
 
     async def get_paginated(
         self,

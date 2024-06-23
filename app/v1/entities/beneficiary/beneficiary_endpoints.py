@@ -36,17 +36,20 @@ async def create_beneficiary(
     # Create a new beneficiary
     new_beneficiary = await service.create(beneficiary)
 
-    # Send a request to validate the new beneficiary
-    # service.validate_beneficiary(new_beneficiary)
+    # Send email to validate the new beneficiary
     return new_beneficiary
 
 
-@router.get("/beneficiary/{beneficiary_id}")
+@router.get(
+    "/beneficiary/{beneficiary_id}",
+    status_code=status.HTTP_200_OK,
+    response_model=BeneficiaryItemMapper,
+)
 async def get_beneficiary(
     beneficiary_id: int,
     service: BeneficiaryService = Depends(get_beneficiary_service),
 ):
-    return service.get_by_id(beneficiary_id)
+    return service.get_data_and_bank_account_by_id(beneficiary_id)
 
 
 @router.get(

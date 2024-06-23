@@ -3,6 +3,7 @@ from sqlalchemy.sql import func
 
 from app.v1.core.repository import Repository, NotFoundError, ModelType
 from app.v1.entities.beneficiary.model.beneficiary_model import BeneficiaryModel
+from ..schemas.beneficiary_mappers import BeneficiaryItemMapper
 from app.v1.entities.beneficiary.schemas.beneficiary_schemas import (
     BeneficiaryCreateInDBSchema,
     BeneficiaryUpdateInDBSchema,
@@ -29,6 +30,34 @@ class BeneficiaryRepository(
         if not data:
             raise NotFoundBeneficiaryError(entity_id)
         return super().get_by_id(entity_id)
+
+    def get_data_and_bank_account_by_id(self, entity_id: int) -> BeneficiaryItemMapper:
+        with self.session_factory() as session:
+            beneficiary_columns = ["id", "name", "cpf_cnpj", "email", "status"]
+            bank_account_columns = [
+                "pix_key_type",
+                "pix_key",
+                "bank_name",
+                "branch_number",
+                "account_number",
+                "account_type",
+            ]
+
+            query = session.query(
+                *(getattr(self.model, attr) for attr in beneficiary_columns),
+                *(getattr(BankAccountModel, attr) for attr in bank_account_columns),
+            ).join(BankAccountModel, self.model.id == BankAccountModel.beneficiary_id)
+
+            query = query.filter(self.model.id == entity_id)
+            _data = query.first()
+
+            if not _data:
+                raise NotFoundBeneficiaryError(entity_id)
+
+            _column_to_serialize = beneficiary_columns + bank_account_columns
+            data = self._serialize(_data, _column_to_serialize)
+
+            return BeneficiaryItemMapper(**data)
 
     def update_by_id(
         self, entity_id: int, data: BeneficiaryUpdateInDBSchema
@@ -72,7 +101,7 @@ class BeneficiaryRepository(
             _data = query.offset((page - 1) * per_page).limit(per_page).all()
 
             _column_to_serialize = beneficiary_columns + bank_account_columns
-            data = self._serialize_data(_data, _column_to_serialize)
+            data = self._serialize_list(_data, _column_to_serialize)
             return data, total
 
     def _filter(self, query: Session, filters: dict, model: ModelType) -> Session:
@@ -103,5 +132,8 @@ class BeneficiaryRepository(
                 query = query.filter(getattr(model, key).in_(value))
         return query
 
-    def _serialize_data(self, data: list, keys: list) -> list:
+    def _serialize(self, data: tuple, keys: list) -> dict:
+        return dict(zip(keys, data))
+
+    def _serialize_list(self, data: list, keys: list) -> list:
         return [dict(zip(keys, item)) for item in data]
