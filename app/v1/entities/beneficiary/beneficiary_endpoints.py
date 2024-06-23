@@ -49,7 +49,14 @@ async def get_beneficiary(
     beneficiary_id: int,
     service: BeneficiaryService = Depends(get_beneficiary_service),
 ):
-    return service.get_data_and_bank_account_by_id(beneficiary_id)
+    try:
+        response = service.get_data_and_bank_account_by_id(beneficiary_id)
+        return response
+    except EntityNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=exc.message,
+        ) from exc
 
 
 @router.get(
